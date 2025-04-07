@@ -1,0 +1,49 @@
+!SESSION 2025-04-01 22:16:19.084 -----------------------------------------------
+eclipse.buildId=Version 1.16.0
+java.version=17.0.11
+java.vendor=Eclipse Adoptium
+BootLoader constants: OS=win32, ARCH=x86_64, WS=win32, NL=en_US
+Command-line arguments:  -os win32 -ws win32 -arch x86_64
+
+!ENTRY com.st.stm32cube.ide.mcu.informationcenter 4 4 2025-04-01 22:16:53.811
+!MESSAGE CubeMX plugin appears to be active, Log4j initialization might be too late.
+
+!ENTRY com.st.stm32cube.ide.mcu.informationcenter 1 1 2025-04-01 22:16:53.822
+!MESSAGE Log4j2 initialized with config file D:\HUST\Embedded NLT\Labs\Lab 1\Lab1_20242\.metadata\.log4j2.xml
+
+!ENTRY com.st.stm32cube.ide.mcu.ide 1 1 2025-04-01 22:17:03.038
+!MESSAGE Started RMI Server, listening on port 41337
+!SESSION 2025-04-01 22:32:48.588 -----------------------------------------------
+eclipse.buildId=Version 1.16.0
+java.version=17.0.11
+java.vendor=Eclipse Adoptium
+BootLoader constants: OS=win32, ARCH=x86_64, WS=win32, NL=en_US
+Command-line arguments:  -os win32 -ws win32 -arch x86_64
+
+!ENTRY com.st.stm32cube.ide.mcu.informationcenter 4 4 2025-04-01 22:33:16.425
+!MESSAGE CubeMX plugin appears to be active, Log4j initialization might be too late.
+
+!ENTRY com.st.stm32cube.ide.mcu.informationcenter 1 1 2025-04-01 22:33:16.427
+!MESSAGE Log4j2 initialized with config file D:\HUST\Embedded NLT\Labs\Lab 1\Lab1_20242\.metadata\.log4j2.xml
+
+!ENTRY com.st.stm32cube.ide.mcu.ide 1 1 2025-04-01 22:33:20.617
+!MESSAGE Started RMI Server, listening on port 41337
+!SESSION 2025-04-01 22:36:11.311 -----------------------------------------------
+eclipse.buildId=Version 1.16.0
+java.version=17.0.11
+java.vendor=Eclipse Adoptium
+BootLoader constants: OS=win32, ARCH=x86_64, WS=win32, NL=en_US
+Framework arguments:  D:\HUST\Embedded NLT\Labs\Lab 1\Lab1_20242\.project
+Command-line arguments:  -os win32 -ws win32 -arch x86_64 D:\HUST\Embedded NLT\Labs\Lab 1\Lab1_20242\.project
+
+!ENTRY com.st.stm32cube.ide.mcu.informationcenter 4 4 2025-04-01 22:36:17.947
+!MESSAGE CubeMX plugin appears to be active, Log4j initialization might be too late.
+
+!ENTRY com.st.stm32cube.ide.mcu.informationcenter 1 1 2025-04-01 22:36:17.949
+!MESSAGE Log4j2 initialized with config file D:\HUST\Embedded NLT\Labs\Lab 1\Lab1_20242\.metadata\.log4j2.xml
+
+!ENTRY com.st.stm32cube.ide.mcu.ide 1 1 2025-04-01 22:36:21.536
+!MESSAGE Started RMI Server, listening on port 41337
+
+!ENTRY org.eclipse.core.jobs 2 2 2025-04-01 22:36:29.709
+!MESSAGE Job found still running after platform shutdown.  Jobs should be canceled by the plugin that scheduled them during shutdown: org.eclipse.ui.internal.Workbench$39

@@ -1,0 +1,11 @@
+../Core/Src/7ledmain.c:70:6:NMI_Handler	4	static
+../Core/Src/7ledmain.c:85:6:HardFault_Handler	4	static
+../Core/Src/7ledmain.c:100:6:MemManage_Handler	4	static
+../Core/Src/7ledmain.c:115:6:BusFault_Handler	4	static
+../Core/Src/7ledmain.c:130:6:UsageFault_Handler	4	static
+../Core/Src/7ledmain.c:145:6:SVC_Handler	4	static
+../Core/Src/7ledmain.c:158:6:DebugMon_Handler	4	static
+../Core/Src/7ledmain.c:171:6:PendSV_Handler	4	static
+../Core/Src/7ledmain.c:184:6:SysTick_Handler	8	static
+../Core/Src/7ledmain.c:205:6:EXTI0_IRQHandler	8	static
+../Core/Src/7ledmain.c:236:6:TIM6_DAC_IRQHandler	8	static
