@@ -223,9 +223,6 @@ int main(void)
 
 	  Run7SegDisplay();
 
-//	  Set7SegDisplayValue(irda_cmd[2] & 0x0F);
-//	  Run7SegDisplay();
-
     /* USER CODE END WHILE */
 
 	  static int current_mode = 0;

@@ -20,7 +20,6 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "stm32f4xx_it.h"
-#include "7seg.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 /* USER CODE END Includes */
@@ -208,16 +207,23 @@ void EXTI0_IRQHandler(void)
 {
   /* USER CODE BEGIN EXTI0_IRQn 0 */
 	static int counter = 0;
+//	int first_click = 0;
   if (TIM6_Count < 3000)
   {
 	HAL_GPIO_TogglePin(GPIOG, GPIO_PIN_13 | GPIO_PIN_14);
   }
   TIM6_Count = 0;
 
-	  counter ++;
-	  if(counter > 99){
-		  counter = 0;
-	  }
+//  if(!first_click){
+//	  counter =0;
+//	  counter++;
+//	  first_click = 1;
+//  }else{
+//	  counter ++;
+//	  if(counter > 99)
+//		  counter = 0;
+//  }
+  counter ++;
 
   Set7SegDisplayValue(counter);
   /* USER CODE END EXTI0_IRQn 0 */

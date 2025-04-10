@@ -18,10 +18,13 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-#include "7seg.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
+#include "irda.h"
+#include "stdio.h"
+#include "string.h"
+#include "7seg.h"
 
 /* USER CODE END Includes */
 
@@ -43,23 +46,33 @@
 /* Private variables ---------------------------------------------------------*/
 TIM_HandleTypeDef htim6;
 
+UART_HandleTypeDef huart1;
+
 /* USER CODE BEGIN PV */
-extern int TIM6_Count;
-unsigned char LED_Value;
-int current_mode = 0;
-int repeat_count = 0;
+int tim6_count;
+unsigned char LED_Value =1;
+extern unsigned char send;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
 static void MX_GPIO_Init(void);
 static void MX_TIM6_Init(void);
+static void MX_USART1_UART_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+extern int command_ok;
+extern unsigned char irda_cmd[4];
+/* USER CODE END 0 */
+
+/**
+  * @brief  The application entry point.
+  * @retval int
+  */
 
 void DisplayLEDsRaw(){
 	if (LED_Value & 0x80)
@@ -100,14 +113,18 @@ void DisplayLEDs(int mode)
 {
 	switch (mode){
 		case 1:
-			LED_Value = (LED_Value >> 1) | (LED_Value << 7);
+			LED_Value = (LED_Value >> 1);
+			if (LED_Value == 0) LED_Value = 0x80;
 			break;
 
 		case 2:
-			LED_Value = (LED_Value << 1) | (LED_Value >> 7);
+			LED_Value = (LED_Value << 1);
+			if (LED_Value == 0) LED_Value = 0x01;
 			break;
+
 		case 3:
-		{
+		{	LED_Value = 1;
+
 			static int flash_step = 0;
 			if (flash_step % 2 == 0)
 				LED_Value = 0xFF;
@@ -120,8 +137,6 @@ void DisplayLEDs(int mode)
 
 			if (flash_step >= 4) {
 				flash_step = 0;
-				current_mode++;
-				repeat_count = 0;
 			}
 			return;
 		}
@@ -129,6 +144,8 @@ void DisplayLEDs(int mode)
 
 		case 4:
 		{
+			LED_Value = 1;
+
 			static int bumper_step = 0;
 			uint8_t patterns[] = {
 					0b10000001,
@@ -149,18 +166,11 @@ void DisplayLEDs(int mode)
 	DisplayLEDsRaw();
 }
 
-
-/* USER CODE END 0 */
-
-/**
-  * @brief  The application entry point.
-  * @retval int
-  */
 int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-  TIM6_Count = 0;
+
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -182,35 +192,76 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_TIM6_Init();
+  MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start_IT(&htim6);
-  Set7SegDisplayValue(25);
+  command_ok = 0;
+  tim6_count = 0;
+
 
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  LED_Value = 1;
   while (1)
   {
+	  //turn off 2 LEDs
+	  HAL_GPIO_TogglePin(GPIOG, GPIO_PIN_13);
+	  //delay
 	  HAL_Delay(5);
+
+	  if (command_ok)
+	  {
+		  char buf[256];
+		  IrDecode();
+		  sprintf(buf, "%02x%02x%02x%02x\n", irda_cmd[0], irda_cmd[1], irda_cmd[2], irda_cmd[3]);
+		  HAL_UART_Transmit(&huart1, (const uint8_t *)buf, strlen(buf), 2);
+		  command_ok = 0;
+	  }
+
+	  send =irda_cmd[2];
+
 	  Run7SegDisplay();
 
-	  DisplayLEDs(current_mode);
-	  HAL_Delay(150);
+//	  Set7SegDisplayValue(irda_cmd[2] & 0x0F);
+//	  Run7SegDisplay();
 
-	  repeat_count ++;
-
-	  if (repeat_count  >= 16){
-		  repeat_count = 0;
-		  current_mode = (current_mode % 4) + 1;
-
-			if (current_mode == 1)
-				LED_Value = 1;
-			else if (current_mode == 2)
-				LED_Value = 0x01;
-	  }
     /* USER CODE END WHILE */
+
+	  static int current_mode = 0;
+	  static int repeat_count = 0;
+
+	  switch(irda_cmd[2]) {
+	  	case 0x45:  // Mode 1
+	  		if (current_mode != 1) {
+	  			current_mode = 1;
+	  			LED_Value = 0x80; // start from left
+	  		}
+	  		break;
+
+	  	case 0x46:  // Mode 2
+	  		if (current_mode != 2) {
+	  			current_mode = 2;
+	  			LED_Value = 0x01; // start from right
+	  		}
+	  		break;
+
+	  	case 0x47:  // Mode 3 (Blink)
+	  		if (current_mode != 3) {
+	  			current_mode = 3;
+	  		}
+	  		break;
+
+	  	case 0x44:  // Mode 4 (Bumper)
+	  		if (current_mode != 4) {
+	  			current_mode = 4;
+	  		}
+	  		break;
+	  }
+	  DisplayLEDs(current_mode);
+	  HAL_Delay(100);  // control animation speed
+
+//	  Set7SegHexByte(send);
 
     /* USER CODE BEGIN 3 */
   }
@@ -301,9 +352,44 @@ static void MX_TIM6_Init(void)
   {
     Error_Handler();
   }
+
+
   /* USER CODE BEGIN TIM6_Init 2 */
 
   /* USER CODE END TIM6_Init 2 */
+
+}
+
+/**
+  * @brief USART1 Initialization Function
+  * @param None
+  * @retval None
+  */
+static void MX_USART1_UART_Init(void)
+{
+
+  /* USER CODE BEGIN USART1_Init 0 */
+
+  /* USER CODE END USART1_Init 0 */
+
+  /* USER CODE BEGIN USART1_Init 1 */
+
+  /* USER CODE END USART1_Init 1 */
+  huart1.Instance = USART1;
+  huart1.Init.BaudRate = 115200;
+  huart1.Init.WordLength = UART_WORDLENGTH_8B;
+  huart1.Init.StopBits = UART_STOPBITS_1;
+  huart1.Init.Parity = UART_PARITY_NONE;
+  huart1.Init.Mode = UART_MODE_TX_RX;
+  huart1.Init.HwFlowCtl = UART_HWCONTROL_NONE;
+  huart1.Init.OverSampling = UART_OVERSAMPLING_16;
+  if (HAL_UART_Init(&huart1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+  /* USER CODE BEGIN USART1_Init 2 */
+
+  /* USER CODE END USART1_Init 2 */
 
 }
 
@@ -320,14 +406,14 @@ static void MX_GPIO_Init(void)
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOH_CLK_ENABLE();
-  __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOE_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
   __HAL_RCC_GPIOG_CLK_ENABLE();
+  __HAL_RCC_GPIOA_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOE, GPIO_PIN_8|GPIO_PIN_9|GPIO_PIN_10|GPIO_PIN_11
-                          |GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14, GPIO_PIN_RESET);
+                          |GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14|GPIO_PIN_15, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOD, GPIO_PIN_8|GPIO_PIN_9|GPIO_PIN_10|GPIO_PIN_11
@@ -336,25 +422,13 @@ static void MX_GPIO_Init(void)
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(GPIOG, GPIO_PIN_2|GPIO_PIN_3|GPIO_PIN_13|GPIO_PIN_14, GPIO_PIN_RESET);
 
-  /*Configure GPIO pin : PA0 */
-  GPIO_InitStruct.Pin = GPIO_PIN_0;
-  GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
-
   /*Configure GPIO pins : PE8 PE9 PE10 PE11
-                           PE12 PE13 PE14 */
+                           PE12 PE13 PE14 PE15 */
   GPIO_InitStruct.Pin = GPIO_PIN_8|GPIO_PIN_9|GPIO_PIN_10|GPIO_PIN_11
-                          |GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14;
+                          |GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14|GPIO_PIN_15;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
-
-  /*Configure GPIO pin : PE15 */
-  GPIO_InitStruct.Pin = GPIO_PIN_15;
-  GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
   /*Configure GPIO pins : PD8 PD9 PD10 PD11
@@ -373,9 +447,15 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
 
+  /*Configure GPIO pin : PG5 */
+  GPIO_InitStruct.Pin = GPIO_PIN_5;
+  GPIO_InitStruct.Mode = GPIO_MODE_IT_FALLING;
+  GPIO_InitStruct.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(GPIOG, &GPIO_InitStruct);
+
   /* EXTI interrupt init*/
-  HAL_NVIC_SetPriority(EXTI0_IRQn, 0, 0);
-  HAL_NVIC_EnableIRQ(EXTI0_IRQn);
+  HAL_NVIC_SetPriority(EXTI9_5_IRQn, 0, 0);
+  HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
 
   /* USER CODE BEGIN MX_GPIO_Init_2 */
   /* USER CODE END MX_GPIO_Init_2 */
