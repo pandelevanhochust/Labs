@@ -129,8 +129,8 @@ void DisplayLEDs(int mode)
 
 		case 4:
 		{
-			static int step = 0;
-			uint8_t pattern[] = {
+			static int bumper_step = 0;
+			uint8_t patterns[] = {
 					0b10000001,
 					0b01000010,
 					0b00100100,
@@ -140,8 +140,8 @@ void DisplayLEDs(int mode)
 					0b10000001
 					};
 
-			LED_Value = pattern[step++];
-			if (step >= sizeof(pattern)) step = 0;
+			LED_Value = patterns[bumper_step++];
+			if (bumper_step >= sizeof(patterns)) bumper_step = 0;
 			break;
 		}
 	}
